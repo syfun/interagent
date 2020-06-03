@@ -1,0 +1,17 @@
+-r base.txt
+
+ipython
+isort
+flake8
+black==19.3b0
+pre-commit
+factory-boy
+click
+gqlgen
+pytest
+pytest-asyncio
+pytest-env
+Faker
+allure-pytest
+sqlalchemy-utils
+pytest-cov

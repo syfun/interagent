@@ -1,0 +1,18 @@
+scalar Timestamp
+
+type Advertiser {
+  id: ID!
+  name: String!
+  file: String
+}
+
+type Ad {
+  id: ID!
+  file: String!
+}
+
+type Query {
+  advertisers: [Advertiser!]  
+  ads: [Ad!]
+}
+
