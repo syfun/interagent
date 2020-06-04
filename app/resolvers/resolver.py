@@ -132,7 +132,6 @@ class ResolverSet:
         return await q.first()
 
     def get(self):
-        @transaction
         async def get_(parent, info, id: str):
             return await self.first(info, load_=True, id=int(id))
 
@@ -148,7 +147,6 @@ class ResolverSet:
         return None
 
     def list(self):
-        @transaction
         async def _list(parent, info, offset: int = None, limit: int = None, filter: dict = None):
             filter_obj = await self.build_list_filter_object(**(filter or {}))
             meta = parse_info(info, depth=3).get_sub_field('data')
