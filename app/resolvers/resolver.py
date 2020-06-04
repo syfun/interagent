@@ -14,9 +14,9 @@ def decapitalize(s: str) -> str:
 class ResolverSet:
     model: Any
     resource: str
-    create_schema_type: Type[BaseModel]
-    update_schema_type: Type[BaseModel]
-    filter_schema_type: Type[BaseModel]
+    create_schema_type: Type[BaseModel] = None
+    update_schema_type: Type[BaseModel] = None
+    filter_schema_type: Type[BaseModel] = None
     soft_delete: bool = False
 
     def resource_get(self):

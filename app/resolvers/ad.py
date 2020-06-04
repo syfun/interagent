@@ -1,12 +1,13 @@
+from gql import query
+
 from app.db.models import Ad, Advertiser
-from .resolver import ResolverSet
 
 
-class AdvertiserResolverSet(ResolverSet):
-    model = Advertiser
-    resource = 'Advertiser'
+@query('ads')
+async def list_ads(parent, info):
+    return await Ad.objects.all()
 
 
-class AdResolverSet(ResolverSet):
-    model = Ad
-    resource = 'Ad'
+@query('advertisers')
+async def list_advertisers(parent, info):
+    return await Advertiser.objects.all()
