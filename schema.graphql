@@ -16,3 +16,11 @@ type Query {
   ads: [Ad!]
 }
 
+type Mutation {
+  createAdvertiser(name: String!, file: String!): Boolean
+  updateAdvertiser(id: ID!, name: String, file: String): Boolean
+  deleteAdvertisers(ids: [ID!]!): Boolean
+  createAd(file: String!): Boolean
+  updateAd(id: ID!, file: String): Boolean
+  deleteAds(ids: [ID!]!): Boolean
+}

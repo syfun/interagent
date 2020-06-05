@@ -21,6 +21,7 @@ TESTING = config('TESTING', cast=bool, default=False)
 
 DATABASE_URL = config('DATABASE_URL', default='postgresql://postgres:postgres@postgres:5432/interagent')
 # REDIS_URL = config('REDIS_URL', default='redis://redis:6379')
+WITH_JUMP = config('WITH_JUMP', cast=bool, default=True)
 
 if DEBUG:
     LOG_LEVEL = config('LOG_LEVEL', default='DEBUG')
@@ -40,3 +41,4 @@ LOGGING = {
     'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'}},
     'root': {'level': LOG_LEVEL, 'handlers': ['console']},
 }
+
