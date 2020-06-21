@@ -14,3 +14,4 @@ class Advertiser(BaseModel):
 class Ad(BaseModel):
     id: Optional[ID]
     file: Optional[str]
+    schedule: Optional[dict]

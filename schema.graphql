@@ -11,9 +11,21 @@ type Ad {
   file: String!
 }
 
+type Ranking {
+  ranking: ID!
+  user: String!
+  score: Integer!
+}
+
 type Query {
   advertisers: [Advertiser!]  
   ads: [Ad!]
+  rankingList: [Ranking!]
+}
+
+input CreateScoreInput {
+  user: String!
+  score: Integer!
 }
 
 type Mutation {
@@ -23,4 +35,5 @@ type Mutation {
   createAd(file: String!): Boolean
   updateAd(id: ID!, file: String): Boolean
   deleteAds(ids: [ID!]!): Boolean
+  createScore(input: CreateScoreInput!): Boolean
 }

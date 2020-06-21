@@ -34,6 +34,8 @@ else:
     LOG_LEVEL = config('LOG_LEVEL', default='INFO')
 
 
+FILE_PREFIX = config('HOST', default='http://localhost:8000')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -46,4 +48,3 @@ LOGGING = {
     'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'}},
     'root': {'level': LOG_LEVEL, 'handlers': ['console']},
 }
-

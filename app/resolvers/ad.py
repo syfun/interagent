@@ -1,16 +1,62 @@
 from functools import wraps
+from datetime import datetime
+from random import sample
+from urllib.parse import urljoin, quote_plus
 
-from gql import mutate, query
+from gql import mutate, query, field_resolver
 
 from app.db.models import Ad, Advertiser
+from app import types, settings
+
+# Ad schedule
+# {"type": "every_day", "start": "", "end": ""}
+# {"type": "weekday", "weekday": ""}
+# {"type": "date", "date": ""}
 
 
-@query('ads')
+def get_two_ads(ads: types.Ad, now: datetime = None):
+    now = now or datetime.now()
+    weekday = now.isoweekday()
+    date, time = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
+    to_random = []
+    for ad in ads:
+        schedule = ad.schedule
+        print(schedule)
+        if not schedule:
+            continue
+        if (
+            schedule["type"] == "every_day"
+            and (start := schedule.get("start"))
+            and (end := schedule.get("end"))
+        ):
+            if start <= time <= end:
+                to_random.append(ad)
+        elif schedule["type"] == "weekday" and schedule.get("weekday") == weekday:
+            to_random.append(ad)
+        elif schedule["type"] == "date" and schedule.get("date") == date:
+            to_random.append(ad)
+    length = len(to_random)
+    if length <= 2:
+        return to_random
+    data = sample(to_random, k=2)
+    if data[0].id > data[1].id:
+        data = reversed(data)
+    return data
+
+
+@field_resolver('Ad', 'file')
+def get_ad_url(parent, info):
+    return urljoin(settings.FILE_PREFIX, 'media/' + quote_plus(parent.file))
+
+
+@query("ads")
 async def list_ads(parent, info):
-    return await Ad.objects.all()
+    ads = await Ad.objects.all()
+    # return get_two_ads(ads)
+    return ads
 
 
-@query('advertisers')
+@query("advertisers")
 async def list_advertisers(parent, info):
     return await Advertiser.objects.all()
 
