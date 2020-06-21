@@ -12,16 +12,21 @@ if READ_DOT_ENV_FILE:
 else:
     config = Config()
 
-GRAPHQL_SCHEMA_FILE = config('GRAPHQL_SCHEMA_FILE', cast=str, default=str(ROOT_DIR / 'schema.graphql'))
+GRAPHQL_SCHEMA_FILE = config(
+    'GRAPHQL_SCHEMA_FILE', cast=str, default=str(ROOT_DIR / 'schema.graphql')
+)
 GRAPHQL_PATH = config('GRAPHQL_PATH', default='/graphql/')
 
 DEBUG = config('DEBUG', cast=bool, default=False)
 
 TESTING = config('TESTING', cast=bool, default=False)
 
-DATABASE_URL = config('DATABASE_URL', default='postgresql://postgres:postgres@postgres:5432/interagent')
+DATABASE_URL = config(
+    'DATABASE_URL', default='postgresql://postgres:postgres@postgres:5432/interagent'
+)
 # REDIS_URL = config('REDIS_URL', default='redis://redis:6379')
 WITH_JUMP = config('WITH_JUMP', cast=bool, default=True)
+WITH_SOCKETIO = config('WITH_SOCKETIO', cast=bool, default=True)
 
 if DEBUG:
     LOG_LEVEL = config('LOG_LEVEL', default='DEBUG')
@@ -35,7 +40,7 @@ LOGGING = {
     'formatters': {
         'simple': {
             #'format': '[%(asctime)s] [%(process)s] [%(name)s:%(module)s:%(lineno)d] [%(levelname)s] [%(message)s]',
-            'format': '[%(asctime)s] [%(levelname)s] [%(message)s]',
+            'format': '[%(asctime)s] [%(levelname)s] [%(message)s]'
         }
     },
     'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'}},

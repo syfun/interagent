@@ -2,5 +2,5 @@
 set -e
 
 psql -U "$POSTGRES_USER" <<-EOSQL
-    CREATE DATABASE "eam";
+    CREATE DATABASE "interagent";
 EOSQL

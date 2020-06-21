@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export DATABASE_URL=${DATABASE_URL:='postgresql://postgres:postgres@postgres:5432/eam'}
+export DATABASE_URL=${DATABASE_URL:='postgresql://postgres:postgres@postgres:5432/interagent'}
 postgres_ready() {
 python << END
 

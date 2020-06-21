@@ -28,10 +28,14 @@ async def shutdown():
     await database.disconnect()
 
 
-sio_app = socketio.ASGIApp(sio, other_asgi_app=rest_app)
-rest_app.add_websocket_route('/socket.io/', sio_app)
-rest_app.add_route('/socket.io/', route=sio_app, methods=['GET', 'POST'])
+if settings.WITH_SOCKETIO:
+    sio_app = socketio.ASGIApp(sio, other_asgi_app=rest_app)
+    rest_app.add_websocket_route('/socket.io/', sio_app)
+    rest_app.add_route('/socket.io/', route=sio_app, methods=['GET', 'POST'])
+
 routes = rest_app.router.routes
+routes.append(Mount('/media', StaticFiles(directory='media'), name='media'))
+
 
 if settings.WITH_JUMP:
     templates = Jinja2Templates(directory='build')
@@ -39,7 +43,12 @@ if settings.WITH_JUMP:
     async def homepage(request):
         return templates.TemplateResponse('index.html', {'request': request})
 
-    routes.extend([Route('/', endpoint=homepage), Mount('/jump', StaticFiles(directory='build'), name='static')])
+    routes.extend(
+        [
+            Route('/', endpoint=homepage),
+            Mount('/jump', StaticFiles(directory='build'), name='static'),
+        ]
+    )
 
 
 app = GraphQL(

@@ -28,10 +28,10 @@ test-report: test
 	allure serve ./dist/allure
 
 build:
-	docker build -t dcr.teletraan.io/eam/backend:dev-latest .
+	docker build -t syfun/interagent:latest .
 
 push:
-	docker push dcr.teletraan.io/eam/backend:dev-latest
+	docker push syfun/interagent:latest
 
 migrations-%:
 	alembic revision --autogenerate -m "$*"
