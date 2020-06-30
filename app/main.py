@@ -1,7 +1,6 @@
 import logging.config
 from importlib import import_module
 
-import socketio
 from stargql import GraphQL
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
@@ -9,8 +8,8 @@ from starlette.templating import Jinja2Templates
 
 from app import settings
 from app.db import database
+from .redis import redis
 from .rest import app as rest_app
-from .socket import sio
 
 # register resolvers
 import_module('app.resolvers')
@@ -22,16 +21,13 @@ logging.config.dictConfig(settings.LOGGING)
 
 async def startup():
     await database.connect()
+    await redis.connect()
 
 
 async def shutdown():
     await database.disconnect()
+    await redis.disconnect()
 
-
-if settings.WITH_SOCKETIO:
-    sio_app = socketio.ASGIApp(sio, other_asgi_app=rest_app)
-    rest_app.add_websocket_route('/socket.io/', sio_app)
-    rest_app.add_route('/socket.io/', route=sio_app, methods=['GET', 'POST'])
 
 routes = rest_app.router.routes
 routes.append(Mount('/media', StaticFiles(directory='media'), name='media'))

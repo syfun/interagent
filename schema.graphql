@@ -13,19 +13,28 @@ type Ad {
 
 type Ranking {
   ranking: ID!
-  user: String!
-  score: Integer!
+  userID: ID!
+  avatar: String!
+  score: Int!
 }
 
 type Query {
-  advertisers: [Advertiser!]  
+  advertisers: [Advertiser!]
   ads: [Ad!]
-  rankingList: [Ranking!]
+  "rankingList返回前三名和自身排名"
+  rankingList(userID: ID): [Ranking!]
 }
 
-input CreateScoreInput {
-  user: String!
-  score: Integer!
+"游戏开始，记录用户ID和头像"
+input StartGameInput {
+  userID: ID!
+  avatar: String!
+}
+
+"游戏结束，记录用户分数"
+input EndGameInput {
+  userID: ID!
+  score: Int!
 }
 
 type Mutation {
@@ -35,5 +44,6 @@ type Mutation {
   createAd(file: String!): Boolean
   updateAd(id: ID!, file: String): Boolean
   deleteAds(ids: [ID!]!): Boolean
-  createScore(input: CreateScoreInput!): Boolean
+  startGame(input: StartGameInput!): Boolean
+  endGame(input: EndGameInput!): Boolean
 }
