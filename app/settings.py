@@ -47,3 +47,7 @@ LOGGING = {
     'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'}},
     'root': {'level': LOG_LEVEL, 'handlers': ['console']},
 }
+
+MQTT_HOST = config('MQTT_HOST', default='localhost')
+MQTT_PORT = config('MQTT_PORT', cast=int, default=1883)
+DEVICE = config('DEVICE', default='5c2ef8c4-cc04-4844-b78a-eac31c3c08ec')
