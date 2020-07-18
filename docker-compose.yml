@@ -6,34 +6,44 @@ volumes:
 
 services:
   frontend:
-    image: syfun/jump:latest
+    image: dcr.teletraan.io/public/jump:latest
 
-  #   upstream to local eam service(default listen on 8000 port)
   nginx:
     image: nginx:latest
+    depends_on:
+      - backend
     ports:
-      - 8080:80
+      - 8000:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./media:/media
 
   redis:
     image: redis:latest
     ports:
-    - 6379:6379
+      - 6379:6379
     volumes:
-    - redis:/data
+      - redis:/data
 
   backend:
-    image: syfun/interagent:latest
+    image: dcr.teletraan.io/public/interagent:latest
     depends_on:
       - postgres
-    environment:
-      INIT: "yes"
-      WITH_JUMP: "False"
-      WITH_SOCKETIO: "False"
-    volumes:
-      - ./media:/app/media
+    env_file:
+      - .env
     command: /scripts/start
+    volumes:
+      - ./:/app
+
+  agent:
+    image: dcr.teletraan.io/public/interagent:latest
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    command: python agent.py
+    volumes:
+      - ./:/app
 
   postgres:
     image: postgres:12-alpine
@@ -46,3 +56,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     command: ["postgres", "-c", "max_connections=500"]
+  mqtt:
+    image: eclipse-mosquitto:1.6.10
+    ports:
+      - 1883:1883

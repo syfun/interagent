@@ -132,3 +132,6 @@ dmypy.json
 .idea
 .vscode
 media
+build
+.idea
+.pytest_cache

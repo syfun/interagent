@@ -1,6 +1,6 @@
 from functools import wraps
 from datetime import datetime
-from random import sample
+from random import randint
 from urllib.parse import urljoin, quote_plus
 
 from gql import mutate, query, field_resolver
@@ -21,7 +21,7 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
     to_random = []
     for ad in ads:
         schedule = ad.schedule
-        print(schedule)
+        print(schedule, weekday)
         if not schedule:
             continue
         if (
@@ -36,12 +36,15 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
         elif schedule["type"] == "date" and schedule.get("date") == date:
             to_random.append(ad)
     length = len(to_random)
-    if length <= 2:
+    print(to_random)
+    if length <= 1:
         return to_random
-    data = sample(to_random, k=2)
-    if data[0].id > data[1].id:
-        data = reversed(data)
-    return data
+    data = to_random[randint(0, length - 1)]
+    return [data]
+    # data = sample(to_random, k=2)
+    # if data[0].id > data[1].id:
+    #     data = reversed(data)
+    # return data
 
 
 @field_resolver('Ad', 'file')
@@ -52,8 +55,8 @@ def get_ad_url(parent, info):
 @query("ads")
 async def list_ads(parent, info):
     ads = await Ad.objects.all()
-    # return get_two_ads(ads)
-    return ads
+    return get_two_ads(ads)
+    # return ads
 
 
 @query("advertisers")

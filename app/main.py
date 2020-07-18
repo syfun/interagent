@@ -30,8 +30,10 @@ async def shutdown():
 
 
 routes = rest_app.router.routes
-routes.append(Mount('/media', StaticFiles(directory='media'), name='media'))
 
+
+if settings.STATIC:
+    routes.append(Mount('/media', StaticFiles(directory='media'), name='media'))
 
 if settings.WITH_JUMP:
     templates = Jinja2Templates(directory='build')
