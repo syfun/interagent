@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from datetime import datetime
 from random import randint
@@ -12,6 +13,7 @@ from app import types, settings
 # {"type": "every_day", "start": "", "end": ""}
 # {"type": "weekday", "weekday": ""}
 # {"type": "date", "date": ""}
+logger = logging.getLogger(__name__)
 
 
 def get_two_ads(ads: types.Ad, now: datetime = None):
@@ -21,7 +23,6 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
     to_random = []
     for ad in ads:
         schedule = ad.schedule
-        print(schedule, weekday)
         if not schedule:
             continue
         if (
@@ -29,6 +30,8 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
             and (start := schedule.get("start"))
             and (end := schedule.get("end"))
         ):
+            if end == '00:00:00':
+                end = '24:00:00'
             if start <= time <= end:
                 to_random.append(ad)
         elif schedule["type"] == "weekday" and schedule.get("weekday") == weekday:
@@ -36,7 +39,6 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
         elif schedule["type"] == "date" and schedule.get("date") == date:
             to_random.append(ad)
     length = len(to_random)
-    print(to_random)
     if length <= 1:
         return to_random
     data = to_random[randint(0, length - 1)]

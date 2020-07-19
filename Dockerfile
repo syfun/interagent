@@ -33,7 +33,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . /app
 COPY ./scripts /scripts
 
-RUN chmod +x /scripts
+
+RUN chmod +x /scripts && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Shanghai' >/etc/timezone
 
 WORKDIR /app
 

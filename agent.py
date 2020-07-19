@@ -1,24 +1,30 @@
+import hashlib
 import json
 import logging
-from logging import log
 import logging.config
+import os
 
-import requests
+import dataset
 import paho.mqtt.client as mqtt
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import requests
 
 from app import settings
-from app.db.models import Ad
-
 
 logging.config.dictConfig(settings.LOGGING)
 
 logger = logging.getLogger(__name__)
 
-engine = create_engine(settings.DATABASE_URL)
-Session = sessionmaker(bind=engine)
-session = Session()
+db = dataset.connect(settings.DATABASE_URL)
+ad_table: dataset.Table = db['ads']
+
+
+def compute_file_checksum(filename):
+    with open(filename, 'rb') as f:
+        md5 = hashlib.md5()
+        while chunk := f.read(2048):
+            md5.update(chunk)
+
+        return md5.hexdigest()
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -30,8 +36,13 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(f'device/{settings.DEVICE}/ad')
 
 
-def download_file(filename, url):
+def download_file(filename, url, checksum):
     filename = str(settings.ROOT_DIR / 'media' / filename)
+    if os.path.exists(filename):
+        if checksum == compute_file_checksum(filename):
+            logger.info(f'{filename} exists, skip download')
+            return
+
     logger.info(f'start download file to {filename}')
     r = requests.get(url, stream=True)
     with open(filename, 'wb') as f:
@@ -39,6 +50,16 @@ def download_file(filename, url):
             if chunk:
                 f.write(chunk)
     logger.info(f'end download file to {filename}')
+
+
+def delete_file(filename):
+    filename = str(settings.ROOT_DIR / 'media' / filename)
+    logger.info(f'delete file {filename}')
+    if os.path.exists(filename):
+        os.remove(filename)
+        logger.info(f'delete file {filename} success')
+    else:
+        logger.info(f'{filename} not exists, skip')
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -55,27 +76,21 @@ def on_message(client, userdata, msg):
         return
 
     if action == 'delete':
-        session.query(Ad).filter_by(id=id).delete()
-        session.commit()
+        ad_table.delete(id=id)
+        delete_file(data.get('file'))
         return
 
-    ad = session.query(Ad).filter_by(id=id).first()
-    download = False
-    url = data.pop('url', None)
+    ad = ad_table.find_one(id=id)
+    new_ad = dict(id=id, file=data.get('file'), schedule=data.get('schedule'))
     if not ad:
         logger.info(f'add new ad: {id}')
-        session.add(Ad(**data))
-        download = True
-        session.commit()
-    elif ad.to_dict() != data:
+        ad_table.insert(new_ad)
+    else:
         logger.info(f'update ad: {id}')
-        if ad.file != data.get('file'):
-            download = True
-        ad.file = data.get('file')
-        ad.schedule = data.get('schedule')
-        session.commit()
-    if download:
-        download_file(data.get('file'), url)
+        if ad['file'] != new_ad['file']:
+            delete_file(ad['file'])
+        ad_table.update(new_ad, ['id'])
+    download_file(data.get('file'), data.get('url'), data.get('checksum'))
 
 
 client = mqtt.Client()
