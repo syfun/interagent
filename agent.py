@@ -63,7 +63,7 @@ def delete_file(filename):
 
 
 # The callback for when a PUBLISH message is received from the server.
-def on_message(client, userdata, msg):
+def _on_message(client, userdata, msg):
     ad = json.loads(msg.payload)
     logger.info(f'Received messgae: {msg.topic}, ad: {ad}')
     action, data = ad.get('action'), ad.get('data', {})
@@ -91,6 +91,13 @@ def on_message(client, userdata, msg):
             delete_file(ad['file'])
         ad_table.update(new_ad, ['id'])
     download_file(data.get('file'), data.get('url'), data.get('checksum'))
+
+
+def on_message(client, userdata, msg):
+    try:
+        _on_message(client, userdata, msg)
+    except Exception as exc:
+        logger.error(str(exc))
 
 
 client = mqtt.Client()

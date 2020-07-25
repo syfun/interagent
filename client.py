@@ -11,7 +11,7 @@ def connect():
 
 @sio.on('test')
 def test(data):
-    sio.emit('waitTouch', data)
+    sio.emit('waitTouch', data
 
 
 @sio.on('touchStart')
