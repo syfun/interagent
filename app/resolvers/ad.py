@@ -21,9 +21,13 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
     weekday = now.isoweekday()
     date, time = now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
     to_random = []
+    default_ads = []
     for ad in ads:
         schedule = ad.schedule
         if not schedule:
+            continue
+        if ad.default:
+            default_ads.append(ad)
             continue
         if (
             schedule["type"] == "every_day"
@@ -39,7 +43,9 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
         elif schedule["type"] == "date" and schedule.get("date") == date:
             to_random.append(ad)
     length = len(to_random)
-    if length <= 1:
+    if not length:
+        return [default_ads[randint(0, len(default_ads) - 1)]]
+    if length == 1:
         return to_random
     data = to_random[randint(0, length - 1)]
     return [data]
@@ -57,8 +63,8 @@ def get_ad_url(parent, info):
 @query("ads")
 async def list_ads(parent, info):
     ads = await Ad.objects.all()
-    return get_two_ads(ads)
-    # return ads
+    ads = get_two_ads(ads)
+    return ads
 
 
 @query("advertisers")

@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Boolean
+from sqlalchemy.sql import expression
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app import types
@@ -23,6 +24,7 @@ class Ad(Base):
 
     file = Column(String, nullable=False)
     schedule = Column(JSONB, nullable=True)
+    default = Column(Boolean, server_default=expression.false())
 
     def to_dict(self):
         return dict(id=self.id, file=self.file, schedule=self.schedule)

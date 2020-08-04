@@ -7,11 +7,14 @@ volumes:
 services:
   frontend:
     image: dcr.teletraan.io/public/jump:dev-latest
+    restart: always
 
   nginx:
     image: nginx:latest
+    restart: always
     depends_on:
       - backend
+      - frontend
     ports:
       - 8000:80
     volumes:
@@ -20,6 +23,7 @@ services:
 
   redis:
     image: redis:latest
+    restart: always
     ports:
       - 6379:6379
     volumes:
@@ -27,39 +31,37 @@ services:
 
   backend:
     image: dcr.teletraan.io/public/interagent:latest
+    restart: always
     depends_on:
       - postgres
+      - redis
     env_file:
       - .env
     environment:
       - INIT=yes
-    command: python main.py
-    volumes:
-      - ./:/app
+    command: /scripts/start
 
   agent:
     image: dcr.teletraan.io/public/interagent:latest
+    restart: always
     depends_on:
       - postgres
+      - redis
     env_file:
       - .env
     command: python agent.py
     volumes:
-      - ./:/app
+      - ./media:app/media
 
   postgres:
     image: postgres:12-alpine
+    restart: always
     ports:
       - 5432:5432
     volumes:
       - pg_data:/var/lib/postgresql/data
-      # - ./scripts/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=interagent
     command: ["postgres", "-c", "max_connections=500"]
-  mqtt:
-    image: eclipse-mosquitto:1.6.10
-    ports:
-      - 1883:1883

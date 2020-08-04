@@ -81,7 +81,12 @@ def _on_message(client, userdata, msg):
         return
 
     ad = ad_table.find_one(id=id)
-    new_ad = dict(id=id, file=data.get('file'), schedule=data.get('schedule'))
+    new_ad = dict(
+        id=id,
+        file=data.get('file'),
+        schedule=data.get('schedule'),
+        default=data.get('default', False),
+    )
     if not ad:
         logger.info(f'add new ad: {id}')
         ad_table.insert(new_ad)

@@ -16,6 +16,7 @@ class Ad(BaseModel):
     id: Optional[ID]
     file: Optional[str]
     schedule: Optional[dict]
+    default: Optional[bool] = Field(False)
 
 
 class Ranking(BaseModel):
