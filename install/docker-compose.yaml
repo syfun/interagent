@@ -51,7 +51,8 @@ services:
       - .env
     command: python agent.py
     volumes:
-      - ./media:app/media
+      - ./media:/app/media
+      - ./device.json:/app/device.json
 
   postgres:
     image: postgres:12-alpine

@@ -34,6 +34,7 @@ def on_connect(client, userdata, flags, rc):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     client.subscribe(f'device/{settings.DEVICE}/ad')
+    client.subscribe(f'device/{settings.DEVICE}/config')
 
 
 def download_file(filename, url, checksum):
@@ -62,10 +63,8 @@ def delete_file(filename):
         logger.info(f'{filename} not exists, skip')
 
 
-# The callback for when a PUBLISH message is received from the server.
-def _on_message(client, userdata, msg):
-    ad = json.loads(msg.payload)
-    logger.info(f'Received messgae: {msg.topic}, ad: {ad}')
+def handle_ad(ad: dict):
+    logger.info(f'handle ad: {ad}')
     action, data = ad.get('action'), ad.get('data', {})
     if action not in ['edit', 'delete']:
         logger.info(f"skip action {action}, expect 'edit' or 'delete'")
@@ -96,6 +95,25 @@ def _on_message(client, userdata, msg):
             delete_file(ad['file'])
         ad_table.update(new_ad, ['id'])
     download_file(data.get('file'), data.get('url'), data.get('checksum'))
+
+
+def handle_device_config(data: dict):
+    logger.info(f'Handle device config: {data}')
+    if not data:
+        return
+
+    with open('./device.json', 'w') as f:
+        json.dump(data, f)
+
+
+# The callback for when a PUBLISH message is received from the server.
+def _on_message(client, userdata, msg):
+    data = json.loads(msg.payload)
+    logger.info(f'Received messgae: {msg.topic}')
+    if msg.topic.endswith('ad'):
+        handle_ad(data)
+    elif msg.topic.endswith('config'):
+        handle_device_config(data)
 
 
 def on_message(client, userdata, msg):
