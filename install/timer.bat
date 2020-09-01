@@ -1,3 +1,3 @@
 @echo off
 echo Timer started
-"C:\timer\timer.exe" C:\timer\config.json 
+"d:\fun\timer.exe" d:\fun\config\device.json 

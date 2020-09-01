@@ -102,7 +102,7 @@ def handle_device_config(data: dict):
     if not data:
         return
 
-    with open('./device.json', 'w') as f:
+    with open('./config/device.json', 'w') as f:
         json.dump(data, f)
 
 
