@@ -1,4 +1,4 @@
-from app.resolvers.ad import get_two_ads
+from app.resolvers.ad import get_two_ads, meet_every_day
 from app.types import Ad
 from datetime import datetime
 
@@ -19,3 +19,15 @@ def test_get_two_ads():
     now = datetime.strptime('2020-06-23 13:00:00', '%Y-%m-%d %H:%M:%S')
     data = get_two_ads(ads, now)
     assert len(data) == 2
+
+
+def test_meet_every_day():
+    assert meet_every_day('03:00:00', '04:00:00', '03:00:00')
+    assert meet_every_day('03:00:00', '04:00:00', '03:20:00')
+    assert meet_every_day('03:00:00', '04:00:00', '04:00:00')
+    assert not meet_every_day('03:00:00', '04:00:00', '04:01:00')
+
+    assert meet_every_day('16:00:00', '06:00:00', '16:00:00')
+    assert meet_every_day('16:00:00', '06:00:00', '17:00:00')
+    assert meet_every_day('16:00:00', '06:00:00', '06:00:00')
+    assert meet_every_day('16:00:00', '06:00:00', '05:00:00')

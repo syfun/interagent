@@ -16,6 +16,17 @@ from app import types, settings
 logger = logging.getLogger(__name__)
 
 
+def meet_every_day(start, end, time):
+    if end == '00:00:00':
+        end = '24:00:00'
+
+    if start <= time <= end:
+        return True
+    if start > end and (start <= time <= '24:00:00' or time <= end):
+        return True
+    return False
+
+
 def get_two_ads(ads: types.Ad, now: datetime = None):
     now = now or datetime.now()
     weekday = now.isoweekday()
@@ -34,9 +45,7 @@ def get_two_ads(ads: types.Ad, now: datetime = None):
             and (start := schedule.get("start"))
             and (end := schedule.get("end"))
         ):
-            if end == '00:00:00':
-                end = '24:00:00'
-            if start <= time <= end:
+            if meet_every_day(start, end, time):
                 to_random.append(ad)
         elif schedule["type"] == "weekday" and schedule.get("weekday") == weekday:
             to_random.append(ad)
