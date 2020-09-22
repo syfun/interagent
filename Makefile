@@ -30,7 +30,7 @@ test-report: test
 build:
 	docker build -t dcr.teletraan.io/public/interagent:latest .
 
-push:
+push: build
 	docker push dcr.teletraan.io/public/interagent:latest
 
 migrations-%:

@@ -37,6 +37,28 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(f'device/{settings.DEVICE}/config')
 
 
+def sync_device_config():
+    url = f'{settings.REMOTE_HOST}/api/devices/{settings.DEVICE}/config'
+    resp = requests.get(url)
+    if not resp.ok:
+        print('get device config error:')
+        print(resp.content)
+        return
+    config = resp.json()
+    new_ads = {ad['id']: ad for ad in config}
+    old_ads = {ad['id']: ad for ad in ad_table.find()}
+    delete_ad_ids = set(old_ads.keys()) - set(new_ads.keys())
+    if delete_ad_ids:
+        ad_table.delete(id=list(delete_ad_ids))
+        for id in delete_ad_ids:
+            ad = old_ads[id]
+            delete_file(ad['file'])
+
+    for data in config:
+        old_ad = old_ads.get(data['id'])
+        upsert_ad(data, old_ad)
+
+
 def download_file(filename, url, checksum):
     filename = str(settings.ROOT_DIR / 'media' / filename)
     if os.path.exists(filename):
@@ -63,6 +85,25 @@ def delete_file(filename):
         logger.info(f'{filename} not exists, skip')
 
 
+def upsert_ad(data, old_ad):
+    id = data['id']
+    new_ad = dict(
+        id=id,
+        file=data.get('file'),
+        schedule=data.get('schedule'),
+        default=data.get('default', False),
+    )
+    if not old_ad:
+        logger.info(f'add new ad: {id}')
+        ad_table.insert(new_ad)
+    else:
+        logger.info(f'update ad: {id}')
+        if old_ad['file'] != new_ad['file']:
+            delete_file(old_ad['file'])
+        ad_table.update(new_ad, ['id'])
+    download_file(data.get('file'), data.get('url'), data.get('checksum'))
+
+
 def handle_ad(ad: dict):
     logger.info(f'handle ad: {ad}')
     action, data = ad.get('action'), ad.get('data', {})
@@ -80,23 +121,9 @@ def handle_ad(ad: dict):
         return
 
     ad = ad_table.find_one(id=id)
-    new_ad = dict(
-        id=id,
-        file=data.get('file'),
-        schedule=data.get('schedule'),
-        default=data.get('default', False),
-    )
-    if not ad:
-        logger.info(f'add new ad: {id}')
-        ad_table.insert(new_ad)
-    else:
-        logger.info(f'update ad: {id}')
-        if ad['file'] != new_ad['file']:
-            delete_file(ad['file'])
-        ad_table.update(new_ad, ['id'])
-    download_file(data.get('file'), data.get('url'), data.get('checksum'))
+    upsert_ad(data, ad)
 
-
+    
 def handle_device_config(data: dict):
     logger.info(f'Handle device config: {data}')
     if not data:
@@ -123,16 +150,19 @@ def on_message(client, userdata, msg):
         logger.error(str(exc))
 
 
-client = mqtt.Client()
-client.on_connect = on_connect
-client.on_message = on_message
+if __name__ == "__main__":
+    sync_device_config()
 
-client.connect(settings.MQTT_HOST, settings.MQTT_PORT, 60)
-# client.message_callback_add('11', on_message)
-# client.message_callback_add("device/bfe8a4c4-2947-4e01-a2d9-b8bde08dfba6/ad", on_message)
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
 
-# Blocking call that processes network traffic, dispatches callbacks and
-# handles reconnecting.
-# Other loop*() functions are available that give a threaded interface and a
-# manual interface.
-client.loop_forever()
+    client.connect(settings.MQTT_HOST, settings.MQTT_PORT, 60)
+    # client.message_callback_add('11', on_message)
+    # client.message_callback_add("device/bfe8a4c4-2947-4e01-a2d9-b8bde08dfba6/ad", on_message)
+
+    # Blocking call that processes network traffic, dispatches callbacks and
+    # handles reconnecting.
+    # Other loop*() functions are available that give a threaded interface and a
+    # manual interface.
+    client.loop_forever()
